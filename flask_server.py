@@ -19,60 +19,6 @@ app = Flask(__name__)
 procs = list()
 device_list = list()
 
-
-@app.route('/Pod/<string:instance_name>/<string:behavior>', methods=['POST'])
-def post_pod(instance_name: str, behavior: str):
-    if behavior == 'create':
-        json_data = request.json
-        config: dict = json.loads(json_data)
-        put(instance_name, config)
-        config['behavior'] = 'create'
-    elif behavior == 'update':  # update pods information such as ip
-        json_data = request.json
-        config: dict = json.loads(json_data)
-        put(instance_name, config)
-        return 'success', 200
-    elif behavior == 'remove':
-        config = get(instance_name)
-        config['status'] = 'Removed'
-        put(instance_name, config)
-        config['behavior'] = 'remove'
-    elif behavior == 'execute':
-        config = get(instance_name)
-        json_data = request.json
-        upload_cmd: dict = json.loads(json_data)
-        # if config.get('cmd') is not None and config['cmd'] != upload_cmd['cmd']:
-        config['behavior'] = 'execute'
-        config['cmd'] = upload_cmd['cmd']
-    elif behavior == 'delete':
-        pods_list: list = get('pods_list')
-        index = -1
-        for i, pod_instance_name in enumerate(pods_list):
-            if pod_instance_name == instance_name:
-                index = i
-        pods_list.pop(index)
-        delete_key(instance_name)
-        put('pods_list', pods_list)
-        return "success", 200
-    else:
-        return json.dumps(dict()), 404
-    # todo: post pod information to related node
-
-    worker_url = None
-    pods_list = get('pods_list')
-    for pod_instance_name in pods_list:
-        if instance_name == pod_instance_name:
-            pod_config = get(pod_instance_name)
-            if pod_config.get('node') is not None:
-                node_instance_name = pod_config['node']
-                node_config = get(node_instance_name)
-                worker_url = node_config['url']
-    if worker_url is not None:  # only scheduler successfully will have a worker_url
-        r = requests.post(url=worker_url + "/Pod", json=json.dumps(config))
-    # broadcast_message('Pod', config.__str__())
-    return json.dumps(config), 200
-
-
 @app.route('/start', methods=['GET'])
 def start_record():
     for process in procs:
