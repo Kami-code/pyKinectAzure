@@ -29,7 +29,7 @@ if __name__ == "__main__":
 		ret_color, color_image = capture.get_color_image()
 
 		# Get the colored depth
-		ret_depth, transformed_colored_depth_image = capture.get_transformed_colored_depth_image()
+		ret_depth, transformed_colored_depth_image = capture.get_transformed_depth_image()
 
 		if not ret_color or not ret_depth:
 			continue
